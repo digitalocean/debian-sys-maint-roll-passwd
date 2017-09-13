@@ -1,6 +1,6 @@
 ## Script
 To apply the fix, simply run:
-* wget -O fix.sh https://github.com/digitalocean/debian-sys-maint-roll-passwd/fix.sh
+* wget -O fix.sh https://raw.githubusercontent.com/digitalocean/debian-sys-maint-roll-passwd/master/fix.sh
 * bash fix.sh
 
 ### Explanation of the fix
