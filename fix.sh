@@ -10,10 +10,17 @@ fi
 log_f="/root/mysql-fix-$(date +%s).log"
 failed() {
     cat <<EOM
-WARNING: your system may still be vulnerable.
+==============================================================
 
-Please file a ticket with DigitalOcean support and include
-include ${log_f} if you require further assistance.
+WARNING: your system may still be affected.
+
+==============================================================
+
+If you are running this on a DigitalOcean Droplet, please file
+a ticket with DigitalOcean support and include include
+${log_f} if you require further assistance.
+
+==============================================================
 
 EOM
     exit 1
@@ -33,6 +40,12 @@ This process entains:
 
 EOM
 
+if [ ! -f /etc/mysql/debian.cnf ]; then
+    echo "This system is not affected."
+    exit 0
+fi
+
+
 # Setup logging
 exec > >(tee ${log_f}) 2>&1
 echo "Logging to ${log_f}"
@@ -43,18 +56,33 @@ dsm_user="$(awk '/user/{print $NF; exit;}' /etc/mysql/debian.cnf)"
 old_dsm_pass="$(awk '/password/{print $NF; exit;}' /etc/mysql/debian.cnf)"
 
 # Error checking
-dsm_user="${dsm_user:?failed to find debian-sys-maint user in /etc/mysql/debian.cfg}"
-old_dsm_pass="${old_dsm_pass:?failed to find the current password for ${dsm_user}}"
+dsm_user="${dsm_user:?Failed to find debian-sys-maint user in /etc/mysql/debian.cfg. This system  is not likely affected.}"
+old_dsm_pass="${old_dsm_pass:?Failed to find the current password for ${dsm_user}. Unable to automatically fix.}"
 
 # Set the new password
 new_dsm_pass="$(openssl rand -hex 24)"
 
-case "$(lsb_release -c -s)" in
+cname="$(lsb_release -c -s)"
+cname="${cname:?unable to determine Debian version name. If this is not a Debian/Ubuntu system, it is not affected.}"
+
+if [ "${cname}" == "stretch" ]; then
+    echo "Debian 9 is not affected by the issue."
+    exit 0
+fi
+
+case ${cname} in
+  wheezy|jessie)
+    mysql_restart_cmd="/usr/sbin/service mysql restart";;
   trusty)
-    mysql_restart_cmd="/sbin/restart mysql";
-    passwd_reset_query="use mysql; update user set password=password('${new_dsm_pass}') where user='${dsm_user}'";;
+    mysql_restart_cmd="/sbin/restart mysql";;
   *)
-    mysql_restart_cmd="/bin/systemctl restart mysql.service";
+    mysql_restart_cmd="/bin/systemctl restart mysql.service";;
+esac
+
+case ${cname} in
+  trusty|wheezy|jessie|stretch)
+    passwd_reset_query="use mysql; update user set password=password('${new_dsm_pass}') where user='${dsm_user}'; GRANT ALL PRIVILEGES ON *.* TO '${dsm_user}'@'localhost' IDENTIFIED BY '${new_dsm_pass}'";;
+  *)
     passwd_reset_query="ALTER USER '${dsm_user}'@'localhost' IDENTIFIED BY '${new_dsm_pass}'";;
 esac
 
@@ -86,6 +114,6 @@ trap - EXIT ERR
 
 cat <<EOM
 
-Done. This system is no longer vulnerable.
+Done. This system is no longer affected.
 
 EOM
