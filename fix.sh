@@ -31,7 +31,7 @@ cat <<EOM
 This script changes the MySQL system maintance user used by
 packaging scripts to maintain MySQL during upgrades.
 
-This process entains:
+This process entails:
 - reading the current password
 - generating a new password
 - updating the password in /etc/mysql/debian.cnf
