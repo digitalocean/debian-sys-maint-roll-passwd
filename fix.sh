@@ -60,7 +60,9 @@ dsm_user="${dsm_user:?Failed to find debian-sys-maint user in /etc/mysql/debian.
 old_dsm_pass="${old_dsm_pass:?Failed to find the current password for ${dsm_user}. Unable to automatically fix.}"
 
 # Set the new password
-new_dsm_pass="$(openssl rand -hex 24)"
+# This guarantees the password meets the complexity requirements for a strong password.
+new_dsm_pass="@$(openssl rand -hex 12)$(openssl rand -hex 12 | tr '[:lower:]' '[:upper:]')"
+new_dsm_pass=$(echo $new_dsm_pass | fold -w1 | shuf | tr -d '\n')
 
 cname="$(lsb_release -c -s)"
 cname="${cname:?unable to determine Debian version name. If this is not a Debian/Ubuntu system, it is not affected.}"
@@ -93,6 +95,7 @@ echo "Updating ${dsm_user} with new password"
 mysql -u${dsm_user} -p${old_dsm_pass} -e "${passwd_reset_query};"
 
 # Re-write the configuration file
+cp /etc/mysql/debian.cnf /etc/mysql/debian.cnf.bk-$(date +%s)
 cat > /etc/mysql/debian.cnf <<EOM
 # Automatically generated for Debian scripts. DO NOT TOUCH!
 # This was updated via a 1-Click HotFix on $(date -R)
