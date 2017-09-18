@@ -17,8 +17,10 @@ WARNING: your system may still be affected.
 ==============================================================
 
 If you are running this on a DigitalOcean Droplet, please file
-a ticket with DigitalOcean support and include include
-${log_f} if you require further assistance.
+a ticket with DigitalOcean support and either attach the
+following file or include its contents if you require further
+assistance:
+${log_f}
 
 ==============================================================
 
@@ -28,7 +30,7 @@ EOM
 
 cat <<EOM
 
-This script changes the MySQL system maintance user used by
+This script changes the MySQL system maintenance user used by
 packaging scripts to maintain MySQL during upgrades.
 
 This process entails:
@@ -56,7 +58,7 @@ dsm_user="$(awk '/user/{print $NF; exit;}' /etc/mysql/debian.cnf)"
 old_dsm_pass="$(awk '/password/{print $NF; exit;}' /etc/mysql/debian.cnf)"
 
 # Error checking
-dsm_user="${dsm_user:?Failed to find debian-sys-maint user in /etc/mysql/debian.cfg. This system  is not likely affected.}"
+dsm_user="${dsm_user:?Failed to find debian-sys-maint user in /etc/mysql/debian.cfg. This system is not likely affected.}"
 old_dsm_pass="${old_dsm_pass:?Failed to find the current password for ${dsm_user}. Unable to automatically fix.}"
 
 # Set the new password
