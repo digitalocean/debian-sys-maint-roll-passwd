@@ -9,7 +9,7 @@ This script currently runs on:
 
 Debian 9 is not affected by this particular issue.
 
-Running this script on end-of-life distributions such as Ubuntu 12.04 will fail. You are strongly urged to upgrade any out of life distributions.
+Running this script on end-of-life distributions such as Ubuntu 12.04 will fail. You are strongly urged to migrate deployed services to a supported distribution.
 
 To apply the fix, simply download with:
 
